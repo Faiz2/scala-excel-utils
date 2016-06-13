@@ -35,7 +35,7 @@ class GenericExcelParserV2(val wb: FancyWorkbook) extends LazyLogging with Excel
 
   // In the end each Cell Parser needs to consume a cell.
   // Users can partially applies this to the end of the universe and chain calls.
-  type CellConsumer = (FancyCell) ⇒ Option[ Any ]
+  type CellConsumer = (FancyCell) ⇒ Option[Any]
   /**
    *
    */
@@ -47,14 +47,14 @@ class GenericExcelParserV2(val wb: FancyWorkbook) extends LazyLogging with Excel
    * If column name not found in map the raw (trimmed) column name is used from header cell for column
    *
    */
-  val aliasColumnNames: Map[ String, String ] = Map()
+  val aliasColumnNames: Map[String, String] = Map()
 
   /**
    * The String key is the final (post aliasing) column property and CellConsumer is function to use to parse
    * the data rows at the given column corresponding to the property. If none, then defaultDataCellConsumer is used.
    * Note that CellConsumers must be able to deal with null and Blank cells by (usually) returning None.
    */
-  val customExtractors: Map[ String, CellConsumer ] = Map()
+  val customExtractors: Map[String, CellConsumer] = Map()
   /**
    * You should subclass class this parser to specify what sheet to parse
    */
@@ -80,7 +80,7 @@ class GenericExcelParserV2(val wb: FancyWorkbook) extends LazyLogging with Excel
    * @return Each list item represents a row, as a Map from property to value. If no value for a property then not in
    *         map. Recall a property is actually just a name/token for a column.
    */
-  def parse: List[ Map[ String, Any ] ] = {
+  def parse: List[Map[String, Any]] = {
     logger.info("Parse Beginging (Workbook loaded already... Parsing Sheet: " + sheet)
     val mapper = buildRowMapFromColumnHeaders()
     parseRows(mapper)
@@ -94,7 +94,7 @@ class GenericExcelParserV2(val wb: FancyWorkbook) extends LazyLogging with Excel
    * Blank column headers are by default (a) Not in Map, or (b) Mapped by Column Address then aliased?
    * <strong>This is generic.</strong>
    */
-  protected def buildRowMapFromColumnHeaders(colHeaderRow: Int = 0): Map[ Int, String ] = {
+  protected def buildRowMapFromColumnHeaders(colHeaderRow: Int = 0): Map[Int, String] = {
 
     // Tuples (colIndex, colHeaderString (or addr is col header is empty))
     val rawColumns = sheet.rowAt(colHeaderRow).cells
@@ -112,7 +112,7 @@ class GenericExcelParserV2(val wb: FancyWorkbook) extends LazyLogging with Excel
    * @param rowColToPropMap This is extraction based parsing, will take key as column and put value in
    * @return
    */
-  protected def parseRows(rowColToPropMap: Map[ Int, String ]) = {
+  protected def parseRows(rowColToPropMap: Map[Int, String]) = {
     val rows = sheet.rows.filter(rowFilter)
     logger.info(s"Parsing ${rows.size} rows starting at ${rows.head.addr} Index ${rows.head.index}")
     rows.map(row ⇒ rowParser(row, rowColToPropMap))
@@ -124,14 +124,14 @@ class GenericExcelParserV2(val wb: FancyWorkbook) extends LazyLogging with Excel
    * The current row being parsed, just for debugging/traceing
    * @param rowMap
    * Int is the column index, String is the property to store parsed value in results.
-    * This is after column filtering and extraction has been done.
-    * Key is the column index, Value is the property to store the resultant value
+   * This is after column filtering and extraction has been done.
+   * Key is the column index, Value is the property to store the resultant value
    * @return Map[property,Value] where property is from rowMap and Value is from CellConsumer
    *
    *
    *
    */
-  protected def rowParser(r: FancyRow, rowMap: Map[ Int, String ]): Map[ String, Any ] = {
+  protected def rowParser(r: FancyRow, rowMap: Map[Int, String]): Map[String, Any] = {
     val res = rowMap.flatMap {
       case (cellIndx, prop) ⇒
         val extractFn = customExtractors.getOrElse(prop, defaultDataCellConsumer)
