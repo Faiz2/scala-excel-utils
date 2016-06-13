@@ -9,7 +9,7 @@ import org.fancypoi.excel.{ FancySheet, FancyExcelUtils, FancyRow }
 /**
  * Need to start Pimping these instead of external functions
  * @author Steve Franks (e1040775)
- * @version $Id$
+ *
  */
 trait ExcelFns {
 

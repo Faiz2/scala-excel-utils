@@ -17,6 +17,7 @@ import org.fancypoi.excel.{ FancyCell, FancySheet, FancyWorkbook }
  *
  * @author Steve Franks
  */
+ @Deprecated()
 class GenericExcelParser(val wb: FancyWorkbook) extends LazyLogging with ExcelFns {
 
   import org.fancypoi.excel.FancyRow
