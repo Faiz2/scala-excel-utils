@@ -27,11 +27,13 @@ trait ExcelFns {
   }
 
   /**
-   * Converts Excel Column like A, or BC to an numeric index (1 based?)
+   * Converts Excel Column like A to 0 or AA to 26
    * @param addr
    * @return
    */
   def colAddrToIndex(addr: String): Int = FancyExcelUtils.colAddrToIndex(addr)
+
+  def colIndexToAddr(indx: Int): String = FancyExcelUtils.colIndexToAddr(indx)
 
   /**
    * Creates a new Xlsx Workbook with the sheet given in sheetnames (in order)

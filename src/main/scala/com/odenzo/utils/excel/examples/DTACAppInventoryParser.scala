@@ -12,4 +12,14 @@ class DTACAppInventoryParser(wb: FancyWorkbook) extends GenericMatrixExcelParser
 
   override val sheet: FancySheet = wb.sheetAt(3) // Title is "Application Inventory"
 
+  /**
+   * This only has to be done with the required standard properties which have different column names
+   */
+  override val aliasColumnNames = Map[String, String](
+    "App ID" -> "key",
+    "Abbreviation" -> "shortName",
+    "Name" -> "name",
+    "Description" -> "description"
+  )
+
 }

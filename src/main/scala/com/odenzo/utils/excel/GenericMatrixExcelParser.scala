@@ -1,6 +1,5 @@
 package com.odenzo.utils.excel
 
-
 import com.typesafe.scalalogging.LazyLogging
 import org.fancypoi.excel.FancyWorkbook
 

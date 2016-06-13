@@ -57,4 +57,4 @@ javaOptions in Test += "-Dconfig.file=conf/logger-test.xml"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
-mainClass in(Compile, run) := Some("com.odenzo.archcatalogs.functional.BestProgram")
+

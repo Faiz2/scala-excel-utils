@@ -146,10 +146,10 @@ class WriteConnectivityWorkbook() extends LazyLogging with StdExcelStyles with E
     }
 
     //sheet.setAutoFilter(CellRangeAddress.valueOf("C5:F200"));
-    sheet.setZoom(6, 4)
+    sheet.setZoom(200) // Two hundred percent
     //sheet.setSelected(true)
     //sheet.createFreezePane(0, 1, 0, 1);
-    Range(0, apps.size + 1).foreach(sheet.autoSizeColumn(_))
+    Range(0, apps.size + 1).foreach(sheet.autoSizeColumn)
 
   }
 }
