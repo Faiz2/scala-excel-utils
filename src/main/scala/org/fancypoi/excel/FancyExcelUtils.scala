@@ -26,7 +26,7 @@ object FancyExcelUtils {
 
   /**
    * 列インデックスを列アドレスに変換します。
-    * Warning: This only handles A -> ZZ
+   * Warning: This only handles A -> ZZ
    */
   def colIndexToAddr(index: Int) = {
     index / 26 match {

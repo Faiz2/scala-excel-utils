@@ -1,20 +1,19 @@
 
 
-name := "odenzo-excel-utils"
+name := "scala-excel-utils"
 
-version := "1.0-SNAPSHOT"
+version := "V0.1"
 
 scalaVersion := "2.11.8"
 
-//packageDescription := "Internall Helpers and Utilities"
+packageDescription := "Internal Helpers and Utilities"
 
-resolvers ++= Seq(
-                   "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/",
-                   "SonaType OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
-                   "Scala Tools Releases" at "http://scala-tools.org/repo-releases/",
-                   "Dr Dozer graphiz-s" at "http://dl.bintray.com/content/drdozer/maven"
-                 )
 
+resolvers ++=
+  Seq(
+       Resolver.jcenterRepo,
+       Resolver.bintrayRepo("odenzo", "maven")
+     )
 
 
 // Even though XML needs are small, I am not so found of Scala XML and its deprecated anyway.
@@ -58,3 +57,51 @@ javaOptions in Test += "-Dconfig.file=conf/logger-test.xml"
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
 
+
+
+//////////// Bintray Publishing  --- to Move to Seperate .sbt file
+
+lazy val commonSettings = Seq(
+                               version in ThisBuild := "<YOUR PLUGIN VERSION HERE>",
+                               organization in ThisBuild := "odenzo"
+                             )
+
+
+
+
+
+/* In the credentials.properties file which I will try and store in .ivy
+realm=Bintray API Realm
+host=api.bintray.com
+user=odenzo
+password=BINTRAY_API_KEY
+
+ */
+//credentials += Credentials(Path.userHome / ".ivy2" / "bintraycredentials.properties")
+publishTo := Some("Bintray API Realm"
+                    at "https://api.bintray.com/content/odenzo/maven/scala-excel-utils/V0.1"
+                 )
+//
+//lazy val root = (project in file(".")).
+//  settings(commonSettings ++ bintrayPublishSettings: _*).
+//  settings(
+//    sbtPlugin := true,
+//    name := "<YOUR PLUGIN HERE>",
+//    description := "<YOUR DESCRIPTION HERE>",
+//
+//    publishMavenStyle := false,
+//    repository in bintray := "sbt-plugins",
+//    bintrayOrganization in bintray := None
+//  )
+
+
+/*
+ * Note that this will seem to reject a version ending in SNAPSHOT
+ */
+sbtPlugin := false
+bintrayOrganization := None
+bintrayRepository := "maven"
+publishMavenStyle := false
+bintrayReleaseOnPublish in ThisBuild := false
+licenses +=("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html"))
+bintrayPackageLabels := Seq("scala", "excel", "POI")
