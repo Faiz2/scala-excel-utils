@@ -1,12 +1,26 @@
+import com.typesafe.sbt.SbtNativePackager.autoImport._
 
 
-name := "scala-excel-utils"
+lazy val commonSettings =
+  Seq(
+       organization := "com.odenzo",
+       version := "0.1.2",
+       scalaVersion := "2.11.8"
+     )
 
-version := "V0.1"
 
-scalaVersion := "2.11.8"
 
-packageDescription := "Internal Helpers and Utilities"
+scalacOptions ++= Seq("-unchecked", "-deprecation", "-explaintypes",
+                      //"-verbose",
+                      "-encoding", "utf8",
+                      "-feature",
+                      "-language:existentials",
+                      "-language:implicitConversions",
+                      "-language:higherKinds",
+                      "-language:existentials",
+                      "-language:postfixOps"
+                     )
+
 
 
 resolvers ++=
@@ -14,60 +28,33 @@ resolvers ++=
        Resolver.jcenterRepo,
        Resolver.bintrayRepo("odenzo", "maven")
      )
-
-
-// Even though XML needs are small, I am not so found of Scala XML and its deprecated anyway.
-// Think about moving to ScalaXB http://scalaxb.org
-
-// Common Dependancies used across most projects
-libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5" withSources()
-
-
-
-libraryDependencies ++=
+lazy val root = (project in file("."))
+                .settings(commonSettings: _*)
+                .settings(
+                           name := "scala-excel-utils",
+                           packageDescription := "Internal Helpers and Utilities",
+                           libraryDependencies ++= standardlibs,
+                           libraryDependencies ++= Seq(
+                                                        "org.apache.poi" % "poi" % "3.14" withSources(),
+                                                        "org.apache.poi" % "poi-ooxml" % "3.14"  withJavadoc()
+                                                      )
+                         )
+val standardlibs = // I use these same set in just about every project
   Seq(
-       "com.typesafe" % "config" % "1.3.0" withSources() withJavadoc(), //  https://github.com/typesafehub/config
-       "net.ceedubs" %% "ficus" % "1.1.2" withSources() withJavadoc(),
-       "ch.qos.logback" % "logback-classic" % "1.1.7" withSources() withJavadoc(),
-       "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0" withSources() withJavadoc(),
-       "org.json4s" %% "json4s-native" % "3.3.0" withSources() withJavadoc(), // https://github.com/json4s/json4s/
-       "org.json4s" %% "json4s-scalaz" % "3.3.0" withSources(), // Json4s Scalaz support
-       "org.scalaz" %% "scalaz-core" % "7.2.3" withSources() // For Either really
+       "ch.qos.logback" % "logback-classic" % "1.1.7" withSources(),
+       "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0" withSources(),
+       "org.scalaz" %% "scalaz-core" % "7.2.3" withSources(), // For Either really
+       "org.scala-lang.modules" %% "scala-xml" % "1.0.5" withSources(),
 
-     )
-
-
-libraryDependencies ++=
-  Seq(
        "org.scalacheck" %% "scalacheck" % "1.13.1" % "test" withSources() withJavadoc(),
-       "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test" withSources() withJavadoc()
+       "org.scalatest" %% "scalatest" % "2.2.6" % "test" withSources() withJavadoc()
      )
-
-
-libraryDependencies ++=
-  Seq(
-       "org.apache.poi" % "poi" % "3.14" withSources(),
-       "org.apache.poi" % "poi-ooxml" % "3.14" withSources()
-     )
-
-
 
 javaOptions in Test += "-Dconfig.file=conf/logger-test.xml"
-
-scalacOptions ++= Seq("-unchecked", "-deprecation")
-
 
 
 
 //////////// Bintray Publishing  --- to Move to Seperate .sbt file
-
-lazy val commonSettings = Seq(
-                               version in ThisBuild := "<YOUR PLUGIN VERSION HERE>",
-                               organization in ThisBuild := "odenzo"
-                             )
-
-
-
 
 
 /* In the credentials.properties file which I will try and store in .ivy
@@ -77,22 +64,10 @@ user=odenzo
 password=BINTRAY_API_KEY
 
  */
-//credentials += Credentials(Path.userHome / ".ivy2" / "bintraycredentials.properties")
+
 publishTo := Some("Bintray API Realm"
-                    at "https://api.bintray.com/content/odenzo/maven/scala-excel-utils/V0.1"
+                    at "https://api.bintray.com/content/odenzo/maven/scala-excel-utils/0.1.1"
                  )
-//
-//lazy val root = (project in file(".")).
-//  settings(commonSettings ++ bintrayPublishSettings: _*).
-//  settings(
-//    sbtPlugin := true,
-//    name := "<YOUR PLUGIN HERE>",
-//    description := "<YOUR DESCRIPTION HERE>",
-//
-//    publishMavenStyle := false,
-//    repository in bintray := "sbt-plugins",
-//    bintrayOrganization in bintray := None
-//  )
 
 
 /*
