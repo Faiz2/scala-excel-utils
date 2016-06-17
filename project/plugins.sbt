@@ -1,6 +1,8 @@
 
 ///    http://eed3si9n.com/30sbt_plugins_in_15min/#33
 
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
+
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.1.10")
 
 

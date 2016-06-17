@@ -12,44 +12,30 @@ trait StdExcelStyles {
 
   import org.fancypoi.Implicits._
 
-  val wb: FancyWorkbook // Abstract, so must be in the class we are mixing into, no need for implicits (?)
-
   // wb is not initialized straight away before here, so can make lazy or move to earliy init I guess.
   lazy val stdFont = wb.getFontWith(_.setFontHeightInPoints(14))
-
   lazy val stdHeaderFont = wb.getFontBasedWith(stdFont)(_.setBoldweight(600))
-
   lazy val dataFormat = wb.createDataFormat()
-
-  def format(format: String) = dataFormat.getFormat(format)
-
   lazy val stdDateFormat = format("yyyy-mm-dd")
-
   lazy val stdStyle = wb.getStyle(s => {
     s.setAlignment(CellStyle.ALIGN_CENTER)
     s.setFont(stdFont)
   })
+  lazy val stdRowHeaderStyle = wb.getStyleBasedWith(stdStyle) { cellStyle =>
+    cellStyle.setAlignment(CellStyle.ALIGN_LEFT)
+    cellStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.index)
+    cellStyle.setFillPattern(CellStyle.SOLID_FOREGROUND)
+    cellStyle.setIndention(2)
 
-  lazy val stdRowHeaderStyle = wb.getStyleBasedWith(stdStyle) {
-    s =>
-      {
-        s.setAlignment(CellStyle.ALIGN_LEFT)
-        s.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.index)
-        s.setFillPattern(CellStyle.SOLID_FOREGROUND)
-        s.setIndention(2)
-      }
+  }
+  lazy val stdColHeaderStyle = wb.getStyleBasedWith(stdStyle) { cellStyle =>
+    cellStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.index)
+    cellStyle.setFillPattern(CellStyle.SOLID_FOREGROUND)
+    cellStyle.setAlignment(CellStyle.ALIGN_CENTER)
+    cellStyle.setBorderBottom(CellStyle.BORDER_MEDIUM)
+    cellStyle.setBottomBorderColor(IndexedColors.BLACK)
   }
 
-  lazy val stdColHeaderStyle = wb.getStyleBasedWith(stdStyle) {
-    s =>
-      {
-        s.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.index)
-        s.setFillPattern(CellStyle.SOLID_FOREGROUND)
-        s.setAlignment(CellStyle.ALIGN_CENTER)
-        s.setBorderBottom(CellStyle.BORDER_MEDIUM)
-        s.setBottomBorderColor(IndexedColors.BLACK)
-      }
-  }
   lazy val stdColHeaderRotatedStyle = wb.getStyleBasedWith(stdStyle) {
     s =>
       {
@@ -59,7 +45,6 @@ trait StdExcelStyles {
         s.setIndention(1)
       }
   }
-
   lazy val stdDataCellString = wb.getStyleBasedWith(stdStyle) {
     s =>
       {
@@ -84,4 +69,7 @@ trait StdExcelStyles {
         s.setDataFormat(stdDateFormat)
       }
   }
+  val wb: FancyWorkbook // Abstract, so must be in the class we are mixing into, no need for implicits (?)
+
+  def format(format: String) = dataFormat.getFormat(format)
 }

@@ -110,20 +110,21 @@ class FancyWorkbook(protected[fancypoi] val workbook: Workbook) {
   /**
    * ベースとなるセルスタイルを指定し、blockで設定したスタイルを取得します。
    * 既に同じ値を持つセルスタイルがある場合は、それを返し新しいセルスタイルは生成しません。
+   *
    */
   def getStyleBasedWith(base: CellStyle)(block: CellStyle => Unit) = {
 
-    // Not sure why we can't have a local tmpStyle variable
-    // Maybe because it has to be created each time in the spreadsheet
-    // Having one tmpStyle produces concurrency concerns.
-    // Making a val style = tmpStyle is really just aliasing the reference.
-    // I add that for easier coding style of block, I think block will find it.
-    // tmpStyle と tmpFont をベースとなるセルスタイルで初期化
+    // This will make a temporary style and put in tmpStyle, shared not MT safe?
+    // Applies the styleing in block
+    // Searches to see if an existing style is in the worksheet, if is, return that without creating a new one.
+    // If not, create and return the new style
+    // FIXME: unsure why a local tmpStyle isn't used to ensure no race conditions
     copyStyleWithoutFont(base, tmpStyle)
     copyFont(getFontAt(base.getFontIndex), tmpFont)
     tmpStyle.setFont(tmpFont)
 
-    // スタイルを設定
+    // - Set the style based on the block of code passed in.
+    //
     block(tmpStyle)
 
     // ワークブックから取得したいセルスタイルを検索し、ない場合は生成する。
