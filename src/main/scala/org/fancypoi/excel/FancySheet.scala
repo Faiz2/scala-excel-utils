@@ -41,7 +41,7 @@ class FancySheet(protected[fancypoi] val _sheet: Sheet) {
 
   def row_?(address: String): Option[FancyRow] = rowAt_?(address.toInt - 1)
 
-  def rowAt_?(index: Int): Option[FancyRow] = Option(_sheet.getRow(index))
+  def rowAt_?(index: Int): Option[FancyRow] = Option(new FancyRow(_sheet.getRow(index)))
 
   def rows: List[FancyRow] = (0 to lastRowIndex).map(rowAt).toList
 

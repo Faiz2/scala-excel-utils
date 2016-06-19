@@ -147,13 +147,20 @@ class FancyWorkbook(protected[fancypoi] val workbook: Workbook) {
 
   /**
    * シートを名前で検索します
+   * Get the sheet by given name, if it doesn't exist create it.
    */
   def sheet(name: String): FancySheet = Option(workbook.getSheet(name)) match {
     case None => workbook.createSheet(name)
     case Some(sheet) => sheet
   }
 
-  def sheet_?(name: String): Option[FancySheet] = Option(workbook.getSheet(name))
+  /**
+   * @return   An existing sheet with the given name.
+   */
+  def sheet_?(name: String): Option[FancySheet] = {
+    val sheet = workbook.getSheet(name)
+    Option(new FancySheet(sheet)) // Skip the implicits in internal code.
+  }
 
   /**
    * シートをインデックスで検索し、blockを適用します。
