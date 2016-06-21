@@ -1,7 +1,8 @@
 package com.odenzo.utils.excel
 
-import org.apache.poi.ss.usermodel.{CellStyle, IndexedColors}
-import org.fancypoi.excel.FancyWorkbook
+import org.apache.poi.ss.usermodel.Workbook
+import org.apache.poi.ss.usermodel.CellStyle
+import org.apache.poi.ss.usermodel.IndexedColors
 
 /**
   * Some common styles for writing out Excel sheets. These are not true utilities but time savers for me.
@@ -9,7 +10,7 @@ import org.fancypoi.excel.FancyWorkbook
   */
 trait StdExcelStyles {
 
-  val wb: FancyWorkbook // Abstract, so must be in the class we are mixing into, no need for implicits (?)
+  val wb: Workbook // Abstract, so must be in the class we are mixing into, no need for implicits (?)
 
   import org.fancypoi.Implicits._
 

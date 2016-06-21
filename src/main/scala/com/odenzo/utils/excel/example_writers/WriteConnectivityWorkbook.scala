@@ -5,9 +5,11 @@ import java.io.File
 import com.odenzo.utils.excel.ExcelFns
 import com.odenzo.utils.excel.StdExcelStyles
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.usermodel.Workbook
 import org.fancypoi.Implicits._
 import org.fancypoi.excel._
 
@@ -30,9 +32,11 @@ class WriteConnectivityWorkbook() extends LazyLogging with StdExcelStyles with E
    */
   val apps : Seq[String] = Seq()
 
-  val wb : FancyWorkbook = {
+  val wb : Workbook = {
     val sheetNames : Seq[String] = Seq("Online Connectivity", "Batch Conenctivity", "Meta-Data")
-    createWorkbookWithSheet(sheetNames)
+    val book = new HSSFWorkbook()
+    sheetNames.foreach(book.createSheet)
+    book
   }
 
   //<editor-fold desc="Fonts and Styles">

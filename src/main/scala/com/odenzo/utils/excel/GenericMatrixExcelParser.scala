@@ -1,7 +1,8 @@
 package com.odenzo.utils.excel
 
-import com.typesafe.scalalogging.LazyLogging
-import org.fancypoi.excel.FancyWorkbook
+import com.typesafe.scalalogging.StrictLogging
+import org.apache.poi.ss.usermodel.Row
+import org.apache.poi.ss.usermodel.Workbook
 
 /**
  * This top level generic excel parser that is designed to parse one particular sheet
@@ -15,9 +16,9 @@ import org.fancypoi.excel.FancyWorkbook
  *
  * @author Steve Franks
  */
-class GenericMatrixExcelParser(wb : FancyWorkbook) extends GenericExcelParser(wb) with LazyLogging {
+class GenericMatrixExcelParser(wb : Workbook) extends GenericExcelParserV2(wb) with StrictLogging {
 
-  import org.fancypoi.excel.FancyRow
+
 
   logger.info(s"GenericExcelParser for workbook: $wb with sheet $sheet")
 
@@ -30,16 +31,16 @@ class GenericMatrixExcelParser(wb : FancyWorkbook) extends GenericExcelParser(wb
    *
    *
    */
-  override protected def rowParser(r : FancyRow, rowMap : Map[Int, String]) : Map[String, Any] = {
+  override protected def rowParser(r : Row, rowMap : Map[Int, String]) : Map[String, Any] = {
     val res = rowMap.flatMap {
       case (cellIndx, prop) ⇒
         val extractFn = customExtractors.getOrElse(prop, defaultDataCellConsumer)
-        val v = extractFn(r.cellAt(cellIndx))
+        val v = extractFn(r.getCell(cellIndx))
         if (v.isDefined) Some(prop → v.get)
         else None
     }
 
-    res + ("_rowAddr" → r.addr) // Add row address (index + 1) for debugging porpoises
+    res + ("_rowAddr" → (r.getRowNum+1))
   }
 
 }

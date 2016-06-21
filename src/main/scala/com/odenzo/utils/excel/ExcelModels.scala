@@ -10,12 +10,12 @@ object ExcelModels { // Using type and case classes for testing
 }
 
 /**
- * Represents a Column Address, e.g. A, AA, ZA
+ * Represents a Column Address, e.g. A, AA, ZA. Should be uppercase
  *
- * @param l Currently system only handle A...ZZ correctly.
+ * @param a Currently system only handle A...ZZ correctly.
  */
-case class ColAddr(l : String) {
-  require(l.length == 1 || l.length == 2)
+case class ColAddr(a : String) {
+  require(a.length == 1 || a.length == 2)
 }
 
 case class ColIndx(i : Int)

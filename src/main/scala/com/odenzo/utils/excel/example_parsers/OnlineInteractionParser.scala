@@ -1,8 +1,8 @@
 package com.odenzo.utils.excel.example_parsers
 
-import com.odenzo.utils.excel.GenericExcelParser
-import org.fancypoi.excel.FancyRow
-import org.fancypoi.excel.FancyWorkbook
+import com.odenzo.utils.excel.GenericExcelParserV2
+import org.apache.poi.ss.usermodel.Row
+import org.apache.poi.ss.usermodel.Workbook
 
 /**
  *
@@ -10,10 +10,10 @@ import org.fancypoi.excel.FancyWorkbook
  *
  * @author Steve Franks (e1040775)
  */
-class OnlineInteractionParser(wb : FancyWorkbook) extends GenericExcelParser(wb) {
+class OnlineInteractionParser(wb : Workbook) extends GenericExcelParserV2(wb) {
 
   // Sometimes the first column is empty.... so check the second column to determine empty row.
-  override val rowFilter = (row : FancyRow) ⇒ row.addr != "1" && cellNotEmpty(row.cellAt(2))
+  override val rowFilter = (row : Row) ⇒ row.getRowNum != 0 && cellNotEmpty(row.getCell(2))
 
   override val aliasColumnNames = Map(
     "Business Function (FIS)" → "FIS_Function",

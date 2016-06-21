@@ -2,73 +2,90 @@ package com.odenzo.utils.excel
 
 import java.util.Date
 
-import org.apache.poi.ss.usermodel._
-import org.fancypoi.Implicits._
-import org.fancypoi.excel.FancyCell
-import org.fancypoi.excel.{FancyExcelUtils, FancyRow, FancySheet}
+import scala.util.Try
 
+import org.apache.poi.ss.usermodel._
 
 
 trait ExcelCellParsers {
 
- /**
-    * Get the value of a cell suitable for storing in Neo4J.
+  /**
+    * Gets the value of a cell as a String
     *
     * @param cell to get the content of, POI Cell now, not sure if FancyPOI cell is coerced
     *
-    * @return
+    * @return Cell content in text format, including result of formula if a String
     */
-  def cellContent(cell: FancyCell): String = {
+  def cellContentString(cell: Cell): String = {
     if (cell == null) return ""
-
     val x = cell.getRichStringCellValue.toString
     if (x == null) return ""
     x.trim
   }
 
+
   /**
-    * Trying to decide how to organize cell parsing.
-    * If blank or null cell then None, else if a number (of any kind?) then value.
-    * But what if error, i.e. it is a String cell with value "Cat"
-    * If it is a String cell that is parseable into an Integer no problem, same with RichText.
-    * What if it is a Date cell, still return the Int representation I think.
+    * This doesn't handle all cases, e..g Double / Boolean yet. Needs testing and refinement
+    * Might as well just smartContent.toString it eh?
     *
     * @param cell
     *
     * @return
     */
-  def contentAsInt(cell: Cell): Option[Long] = {
-    None
+  def cellContentOptString(cell: Cell): Option[String] = {
+    // Not sure the best pattern to use for these scenarios
+    Try[String] {
+      val text = cell.getRichStringCellValue.toString.trim
+      if (text.length < 1) throw new IllegalStateException("Empty")
+      else text
+    }.toOption
   }
 
   /**
-    * Crude start at a smart Cell Value thing. I think a FancyCellValue class a good idea.
+    * Crude start at a smart Cell Value thing.
+    * Note this doesn't handle formula or date values well
+    * Not sure how to get the formula result type
     *
-    * @param cell
+    * @param cell Cell, null allowed, to get the content value of by heuristic
     *
     * @return
     */
-  def smartContent(cell: FancyCell): Option[Any] = {
+  def cellContentSmart(cell: Cell): Option[Any] = {
     if (cell == null) return None
     cell.getCellType match {
-      case 0 ⇒ Some(cell.numericValue) // "CELL_TYPE_NUMERIC"
-      case 1 ⇒ Some(cell.stringValue) //"CELL_TYPE_STRING"
-      case 2 ⇒ Some(cell.stringValue) // "CELL_TYPE_FORMULA"
+      case 0 ⇒ Some(cell.getNumericCellValue) // "CELL_TYPE_NUMERIC"
+      case 1 ⇒ Some(cell.getStringCellValue) //"CELL_TYPE_STRING"
+      case 2 ⇒ Some(cell.getStringCellValue) // "CELL_TYPE_FORMULA"
       case 3 ⇒ None // "CELL_TYPE_BLANK"
-      case 4 ⇒ Some(cell.booleanvalue) // "CELL_TYPE_BOOLEAN"
+      case 4 ⇒ Some(cell.getBooleanCellValue) // "CELL_TYPE_BOOLEAN"
       case 5 ⇒ None // "CELL_TYPE_ERROR"
-      case _ ⇒ Some(cell.stringValue) // "!UNKNOWN_CELL_TYPE"
+      case _ ⇒ Some(cell.getStringCellValue) // "!UNKNOWN_CELL_TYPE"
     }
   }
 
 }
+
 /**
   * Some functions, which may just forward ...
   **/
 trait ExcelFns extends ExcelCellParsers {
 
+  import scala.collection.JavaConverters._
+
   import org.apache.poi.ss.usermodel.Row
-  import org.fancypoi.excel.{FancyCell, FancyWorkbook}
+
+  private val alphabets       = ('A' to 'Z').toList
+  private val alphabetIndexes = Map(alphabets.zipWithIndex: _*)
+
+
+  def cellsUntil(r: Row)(badCellFn: (Cell) ⇒ Boolean): Seq[Cell] = {
+    r.cellIterator().asScala.takeWhile(c ⇒ badCellFn(c) != true).toSeq
+  }
+
+  def filteredCells(r: Row)(filterFn: (Cell) ⇒ Boolean): Seq[Cell] = {
+    r.cellIterator().asScala.toSeq.filter(filterFn)
+  }
+
 
   /**
     *
@@ -78,51 +95,69 @@ trait ExcelFns extends ExcelCellParsers {
     * @return Converts to Excel address like AA23
     */
   def cellindexesToAddr(rowIndex: Int, colIndex: Int): String = {
-    FancyExcelUtils.colIndexToAddr(colIndex) + rowIndex
+    colIndexToAddr(colIndex) + rowIndex
+  }
+
+
+  /**
+    * 列アドレスを列インデックスに変換します。
+    * To convert the column address to the column index.
+    * Address assumed to be upper case, e.g. AB
+    * e.g. A -> 0
+    */
+  def colAddrToIndex(col: String) = {
+    // col.toUpperCase? Slow and safe
+    col.toList.reverse.zipWithIndex.foldLeft(0) {
+      case (n, (alphabet, index)) =>
+        val base: Int = n + scala.math.pow(26, index).toInt
+        val v = base * (
+          alphabetIndexes(alphabet) + {
+            if (0 < index) 1 else 0 // To deal with ???
+          }
+          )
+        v
+    }
   }
 
   /**
-    *
-    *
-    * @return Converts Excel Column like A -> 0 or AA to 26
+    * 列インデックスを列アドレスに変換します。
+    * FIXME: Warning: This only handles A -> ZZ   What is biggest column in Excel?
     */
-  def colAddrToIndex(addr: String): Int = FancyExcelUtils.colAddrToIndex(addr)
-
-  def colIndexToAddr(indx: Int): String ={
-    require(indx>0,"Column Index Must be greater than zero ")
-    FancyExcelUtils.colIndexToAddr(indx)
+  def colIndexToAddr(index: Int) = {
+    require(index > 0, "Column Index Must be greater than zero ")
+    index / 26 match {
+      case 0     ⇒ alphabets(index % 26).toString
+      case count ⇒ alphabets(count - 1).toString + alphabets(index % 26).toString
+    }
   }
 
   /**
-    * Creates a new Xlsx Workbook with the sheet given in sheetnames (in order)
+    * TODO NOTE: Worth making a case class ExcelAddress(colAddr, row)?
     *
-    * @param sheetNames
+    * @param address Expects upper case column address.
     *
-    * @return
+    * @return Indexes, which are 0 based, address are one based. Would like to just keep everything one based.
     */
-  def createWorkbookWithSheet(sheetNames: Seq[String]): FancyWorkbook = {
-    val wb = FancyWorkbook.createXlsx
-    sheetNames.foreach(wb.createSheet)
-    wb
+  def addrToIndexes(address: String) = {
+    val m = "([A-Z]+)(\\d+)".r.findAllIn(address).matchData.toList(0)
+    val colAddr = m.group(1)
+    val rowAddr = m.group(2)
+    (colAddrToIndex(colAddr), rowAddr.toInt - 1)
   }
+
 
   /**
     * Unhides all sheets in a workbook.
     *
     * @param workbook
     */
-  def unhideAllSheets(workbook: FancyWorkbook) {
-    for (sheet ← workbook.sheets) {
-      val indx = workbook.getSheetIndex(sheet)
-      if (workbook.isSheetHidden(indx)) {
-        workbook.setSheetHidden(indx, false)
-      }
+  def unhideAllSheets(workbook: Workbook): Unit = {
+    (0 until workbook.getNumberOfSheets).foreach { indx ⇒
+      workbook.setSheetHidden(indx, false)
     }
   }
 
   /**
-    * TODO: Candidate for FancyRow
-    *
     * @return True if the row has zero height, which indicates it is hidden
     */
   def rowIsHidden(row: Row) = row.getZeroHeight
@@ -135,9 +170,9 @@ trait ExcelFns extends ExcelCellParsers {
     *
     * @return True if the row has some content, base definition row not null and ...
     */
-  def rowNotEmpty(row: FancyRow): Boolean = {
+  def rowNotEmpty(row: Row): Boolean = {
     if (row == null) return false
-    cellNotEmpty(row.cellAt(0))
+    cellNotEmpty(row.getCell(0))
   }
 
   /**
@@ -147,9 +182,9 @@ trait ExcelFns extends ExcelCellParsers {
     *
     * @return True if the row has some content, base definition row not null and ...
     */
-  def rowIsEmpty(row: FancyRow): Boolean = !rowNotEmpty(row)
+  def rowIsEmpty(row: Row): Boolean = !rowNotEmpty(row)
 
-  def cellNotEmpty(cell: FancyCell): Boolean = smartContent(cell).isDefined
+  def cellNotEmpty(cell: Cell): Boolean = cellContentSmart(cell).isDefined
 
 
   /**
@@ -189,6 +224,7 @@ trait ExcelFns extends ExcelCellParsers {
 
   /**
     * Assuming a blank existing sheet, this creates a rudimentory Revisions template populating the first line.
+    * Bad form as creating multiple styles. TODO: Seperate out all Style creation
     *
     * @param sheet
     * @param author
@@ -196,24 +232,22 @@ trait ExcelFns extends ExcelCellParsers {
     * @param date
     */
   def writeRevisionsSheet(sheet: Sheet, author: String, changes: String, date: Date) {
-
-    val wb = sheet.workbook
+    val wb = sheet.getWorkbook
     val headerStyle = {
       val s = wb.createCellStyle()
       s.setBorderBottom(CellStyle.BORDER_MEDIUM)
       s.setAlignment(CellStyle.ALIGN_CENTER)
       s.setFillPattern(CellStyle.SOLID_FOREGROUND)
-      s.setFillBackgroundColor(IndexedColors.GREY_25_PERCENT)
+      s.setFillBackgroundColor(IndexedColors.GREY_25_PERCENT.index)
       s
     }
+
     writeColumnTitles(Seq("Revision", "Author", "Changes", "Date"), sheet, Some(headerStyle))
     val row = sheet.createRow(2)
     val data = Seq[AnyRef]("V1.0", author, changes, date).zip(Range(0, 4))
 
-    // Hmm, should write a nice generic writer based on the value Type.
-
-    row.createCell(0).value("V1.0")
-    row.createCell(1).value(author)
+    row.createCell(0).setCellValue("V1.0")
+    row.createCell(1).setCellValue(author)
 
   }
 
@@ -236,12 +270,12 @@ trait ExcelFns extends ExcelCellParsers {
     }
   }
 
-  def autosizeColumnsToMaxWidth(sheet: FancySheet, maxWidthInSizeOfFirstFont: Double, cols: Range) {
+
+  def autosizeColumnsToMaxWidth(sheet: Sheet, maxWidthInSizeOfFirstFont: Double, cols: Range) {
     val maxSize: Int = (maxWidthInSizeOfFirstFont * 256).toInt // POI Excel Genius
-    cols.foreach {
-      col ⇒
-        sheet.autoSizeColumn(col)
-        if (sheet.getColumnWidth(col) > maxSize) sheet.setColumnWidth(col, maxSize)
+    cols.foreach { col ⇒
+      sheet.autoSizeColumn(col)
+      if (sheet.getColumnWidth(col) > maxSize) sheet.setColumnWidth(col, maxSize)
     }
   }
 }
