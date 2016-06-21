@@ -16,9 +16,7 @@ import org.apache.poi.ss.usermodel.Workbook
  *
  * @author Steve Franks
  */
-class GenericMatrixExcelParser(wb : Workbook) extends GenericExcelParserV2(wb) with StrictLogging {
-
-
+class GenericMatrixExcelParser(wb: Workbook) extends GenericExcelParserV2(wb) with StrictLogging {
 
   logger.info(s"GenericExcelParser for workbook: $wb with sheet $sheet")
 
@@ -31,7 +29,7 @@ class GenericMatrixExcelParser(wb : Workbook) extends GenericExcelParserV2(wb) w
    *
    *
    */
-  override protected def rowParser(r : Row, rowMap : Map[Int, String]) : Map[String, Any] = {
+  override protected def rowParser(r: Row, rowMap: Map[Int, String]): Map[String, Any] = {
     val res = rowMap.flatMap {
       case (cellIndx, prop) ⇒
         val extractFn = customExtractors.getOrElse(prop, defaultDataCellConsumer)
@@ -40,7 +38,7 @@ class GenericMatrixExcelParser(wb : Workbook) extends GenericExcelParserV2(wb) w
         else None
     }
 
-    res + ("_rowAddr" → (r.getRowNum+1))
+    res + ("_rowAddr" → (r.getRowNum + 1))
   }
 
 }

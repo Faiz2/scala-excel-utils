@@ -10,10 +10,10 @@ import org.apache.poi.ss.usermodel.Workbook
  *
  * @author Steve Franks (e1040775)
  */
-class OnlineInteractionParser(wb : Workbook) extends GenericExcelParserV2(wb) {
+class OnlineInteractionParser(wb: Workbook) extends GenericExcelParserV2(wb) {
 
   // Sometimes the first column is empty.... so check the second column to determine empty row.
-  override val rowFilter = (row : Row) ⇒ row.getRowNum != 0 && cellNotEmpty(row.getCell(2))
+  override val rowFilter = (row: Row) ⇒ row.getRowNum != 0 && cellNotEmpty(row.getCell(2))
 
   override val aliasColumnNames = Map(
     "Business Function (FIS)" → "FIS_Function",

@@ -2,10 +2,11 @@ package com.odenzo.utils.excel
 
 import java.util.Date
 
+import scala.annotation.tailrec
 import scala.util.Try
 
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.poi.ss.usermodel._
-
 
 trait ExcelCellParsers {
 
@@ -22,7 +23,6 @@ trait ExcelCellParsers {
     if (x == null) return ""
     x.trim
   }
-
 
   /**
     * This doesn't handle all cases, e..g Double / Boolean yet. Needs testing and refinement
@@ -67,8 +67,8 @@ trait ExcelCellParsers {
 
 /**
   * Some functions, which may just forward ...
-  **/
-trait ExcelFns extends ExcelCellParsers {
+  */
+trait ExcelFns extends ExcelCellParsers with StrictLogging {
 
   import scala.collection.JavaConverters._
 
@@ -76,7 +76,6 @@ trait ExcelFns extends ExcelCellParsers {
 
   private val alphabets       = ('A' to 'Z').toList
   private val alphabetIndexes = Map(alphabets.zipWithIndex: _*)
-
 
   def cellsUntil(r: Row)(badCellFn: (Cell) ⇒ Boolean): Seq[Cell] = {
     r.cellIterator().asScala.takeWhile(c ⇒ badCellFn(c) != true).toSeq
@@ -86,7 +85,6 @@ trait ExcelFns extends ExcelCellParsers {
     r.cellIterator().asScala.toSeq.filter(filterFn)
   }
 
-
   /**
     *
     * @param rowIndex Starts at row 0
@@ -95,40 +93,39 @@ trait ExcelFns extends ExcelCellParsers {
     * @return Converts to Excel address like AA23
     */
   def cellindexesToAddr(rowIndex: Int, colIndex: Int): String = {
-    colIndexToAddr(colIndex) + rowIndex
+    colIndexToAddr(colIndex) + (rowIndex + 1).toString
   }
 
-
   /**
-    * 列アドレスを列インデックスに変換します。
-    * To convert the column address to the column index.
-    * Address assumed to be upper case, e.g. AB
+    * Convert from 0-based column to Base26 Column
+    * This should work for arbitrary length addresses, e.g. AAA, AAAA
     * e.g. A -> 0
     */
   def colAddrToIndex(col: String) = {
-    // col.toUpperCase? Slow and safe
-    col.toList.reverse.zipWithIndex.foldLeft(0) {
-      case (n, (alphabet, index)) =>
-        val base: Int = n + scala.math.pow(26, index).toInt
+    val uCol = col.toUpperCase // ? Slow and safe
+
+    uCol.toList.reverse.zipWithIndex.foldLeft(0) {
+      case (summation, (alphabet, index)) =>
+        val base: Int = scala.math.pow(26, index).toInt
         val v = base * (
           alphabetIndexes(alphabet) + {
             if (0 < index) 1 else 0 // To deal with ???
           }
           )
-        v
+        summation + v
     }
   }
 
-  /**
-    * 列インデックスを列アドレスに変換します。
-    * FIXME: Warning: This only handles A -> ZZ   What is biggest column in Excel?
-    */
-  def colIndexToAddr(index: Int) = {
-    require(index > 0, "Column Index Must be greater than zero ")
-    index / 26 match {
-      case 0     ⇒ alphabets(index % 26).toString
-      case count ⇒ alphabets(count - 1).toString + alphabets(index % 26).toString
+
+  def colIndexToAddr(index: Int): String = {
+    // Suprised not a function somewhere to do base conversion, even if use 0,1,2..A,B,.N instead of A,B,C
+    def base10to26(m: Int): String = {
+      if (m < 26) alphabets(m).toString
+      else {
+        base10to26((m / 26)-1) + alphabets(m % 26 )
+      }
     }
+     base10to26(index)
   }
 
   /**
@@ -136,7 +133,7 @@ trait ExcelFns extends ExcelCellParsers {
     *
     * @param address Expects upper case column address.
     *
-    * @return Indexes, which are 0 based, address are one based. Would like to just keep everything one based.
+    * @return Indexes, which are 0 based, address are one based.
     */
   def addrToIndexes(address: String) = {
     val m = "([A-Z]+)(\\d+)".r.findAllIn(address).matchData.toList(0)
@@ -144,7 +141,6 @@ trait ExcelFns extends ExcelCellParsers {
     val rowAddr = m.group(2)
     (colAddrToIndex(colAddr), rowAddr.toInt - 1)
   }
-
 
   /**
     * Unhides all sheets in a workbook.
@@ -185,7 +181,6 @@ trait ExcelFns extends ExcelCellParsers {
   def rowIsEmpty(row: Row): Boolean = !rowNotEmpty(row)
 
   def cellNotEmpty(cell: Cell): Boolean = cellContentSmart(cell).isDefined
-
 
   /**
     * Maps column titles to rowIndex starting at RowIndex(0)
@@ -269,7 +264,6 @@ trait ExcelFns extends ExcelCellParsers {
       case Some(v)                     ⇒ c.setCellValue(v.toString)
     }
   }
-
 
   def autosizeColumnsToMaxWidth(sheet: Sheet, maxWidthInSizeOfFirstFont: Double, cols: Range) {
     val maxSize: Int = (maxWidthInSizeOfFirstFont * 256).toInt // POI Excel Genius

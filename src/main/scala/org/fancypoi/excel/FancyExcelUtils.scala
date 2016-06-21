@@ -8,15 +8,15 @@ import org.fancypoi.MonadicCondition
 import org.fancypoi.MonadicConversions._
 
 object FancyExcelUtils {
-  val alphabets       = ('A' to 'Z').toList
+  val alphabets = ('A' to 'Z').toList
   val alphabetIndexes = Map(alphabets.zipWithIndex: _*)
 
   /**
-    * 列アドレスを列インデックスに変換します。
-    * To convert the column address to the column index.
-    * Address assumed to be upper case, e.g. AB
-    * e.g. A -> 0
-    */
+   * 列アドレスを列インデックスに変換します。
+   * To convert the column address to the column index.
+   * Address assumed to be upper case, e.g. AB
+   * e.g. A -> 0
+   */
   def colAddrToIndex(col: String) = {
     // col.toUpperCase? Slow and safe
     col.toList.reverse.zipWithIndex.foldLeft(0) {
@@ -26,29 +26,29 @@ object FancyExcelUtils {
           alphabetIndexes(alphabet) + {
             if (0 < index) 1 else 0 // To deal with ???
           }
-          )
+        )
         v
     }
   }
 
   /**
-    * 列インデックスを列アドレスに変換します。
-    * FIXME: Warning: This only handles A -> ZZ   What is biggest column in Excel?
-    */
+   * 列インデックスを列アドレスに変換します。
+   * FIXME: Warning: This only handles A -> ZZ   What is biggest column in Excel?
+   */
   def colIndexToAddr(index: Int) = {
     index / 26 match {
-      case 0     ⇒ alphabets(index % 26).toString
+      case 0 ⇒ alphabets(index % 26).toString
       case count ⇒ alphabets(count - 1).toString + alphabets(index % 26).toString
     }
   }
 
   /**
-    * TODO NOTE: Worth making a case class ExcelAddress(colAddr, row)?
-    *
-    * @param address Expects upper case column address.
-    *
-    * @return Indexes, which are 0 based, address are one based. Would like to just keep everything one based.
-    */
+   * TODO NOTE: Worth making a case class ExcelAddress(colAddr, row)?
+   *
+   * @param address Expects upper case column address.
+   *
+   * @return Indexes, which are 0 based, address are one based. Would like to just keep everything one based.
+   */
   def addrToIndexes(address: String) = {
     val m = "([A-Z]+)(\\d+)".r.findAllIn(address).matchData.toList(0)
     val colAddr = m.group(1)
@@ -70,10 +70,10 @@ object FancyExcelUtils {
   def searchFont(workbook: FancyWorkbook, font: FancyFont): Option[Font] = {
     // What is 4?
     (0 until workbook.getNumberOfFonts).toList
-    .filterNot(_ == 4)
-    .map(_.toShort)
-    .find(n ⇒ equalFont(font, workbook.workbook.getFontAt(n)))
-    .map(index ⇒  workbook.workbook.getFontAt(index))
+      .filterNot(_ == 4)
+      .map(_.toShort)
+      .find(n ⇒ equalFont(font, workbook.workbook.getFontAt(n)))
+      .map(index ⇒ workbook.workbook.getFontAt(index))
   }
 
   def searchStyle(workbook: FancyWorkbook, style: FancyCellStyle) = {
@@ -87,23 +87,23 @@ object FancyExcelUtils {
   }
 
   /**
-    * 目に見えるセルかどうかを判定します。
-    *
-    * 以下の条件を満たすと目に見えないと判定します。
-    * ・値がブランク
-    * ・背景色、前面色がない、または、自動設定
-    * ・罫線もない
-    */
+   * 目に見えるセルかどうかを判定します。
+   *
+   * 以下の条件を満たすと目に見えないと判定します。
+   * ・値がブランク
+   * ・背景色、前面色がない、または、自動設定
+   * ・罫線もない
+   */
   def isViewableCell(cell: FancyCell) = {
     !(
       cell.getCellType == CellType.CELL_TYPE_BLANK &&
-        List(0, 64).contains(cell.style.getFillBackgroundColor) &&
-        List(0, 64).contains(cell.style.getFillForegroundColor) &&
-        cell.style.getBorderBottom == CellStyle.BORDER_NONE &&
-        cell.style.getBorderLeft == CellStyle.BORDER_NONE &&
-        cell.style.getBorderRight == CellStyle.BORDER_NONE &&
-        cell.style.getBorderTop == CellStyle.BORDER_NONE
-      )
+      List(0, 64).contains(cell.style.getFillBackgroundColor) &&
+      List(0, 64).contains(cell.style.getFillForegroundColor) &&
+      cell.style.getBorderBottom == CellStyle.BORDER_NONE &&
+      cell.style.getBorderLeft == CellStyle.BORDER_NONE &&
+      cell.style.getBorderRight == CellStyle.BORDER_NONE &&
+      cell.style.getBorderTop == CellStyle.BORDER_NONE
+    )
   }
 
   def copyStyleWithoutFont(from: CellStyle, to: CellStyle) = {
@@ -115,9 +115,8 @@ object FancyExcelUtils {
     to.setBottomBorderColor(from.getBottomBorderColor)
     to.setDataFormat(from.getDataFormat)
     to
-    .setFillForegroundColor(from
-                            .getFillForegroundColor
-    ) // setFillBackgroundColor
+      .setFillForegroundColor(from
+        .getFillForegroundColor) // setFillBackgroundColor
     // の前にsetFillForegroundColorをセットしないとgetFillBackgroundColorの値が変わってしまう。
     to.setFillBackgroundColor(from.getFillBackgroundColor)
     to.setFillPattern(from.getFillPattern)
@@ -134,12 +133,12 @@ object FancyExcelUtils {
   }
 
   /**
-    *
-    * @param from
-    * @param to WARNING: The existing to is mutated
-    *
-    * @return A reference to `to` that is mutated
-    */
+   *
+   * @param from
+   * @param to WARNING: The existing to is mutated
+   *
+   * @return A reference to `to` that is mutated
+   */
   def copyFont(from: Font, to: Font): Font = {
     to.setBoldweight(from.getBoldweight)
     to.setCharSet(from.getCharSet)
@@ -189,9 +188,9 @@ object FancyExcelUtils {
   def equalHyperlink(link1: Hyperlink, link2: Hyperlink) = {
     (link1, link2) match {
       case (null, null) ⇒ true
-      case (null, _)    ⇒ false
-      case (_, null)    ⇒ false
-      case _            ⇒
+      case (null, _) ⇒ false
+      case (_, null) ⇒ false
+      case _ ⇒
         diff(link1.getAddress, link2.getAddress, "address") &&
           diff(link1.getLabel, link2.getLabel, "label") &&
           diff(link1.getType, link2.getType, "type")
@@ -201,9 +200,9 @@ object FancyExcelUtils {
   def equalComment(cm1: Comment, cm2: Comment, w1: Workbook, w2: Workbook) = {
     (cm1, cm2) match {
       case (null, null) ⇒ true
-      case (null, _)    ⇒ false
-      case (_, null)    ⇒ false
-      case _            ⇒
+      case (null, _) ⇒ false
+      case (_, null) ⇒ false
+      case _ ⇒
         diff(cm1.getAuthor, cm2.getAuthor, "author") &&
           diff(cm1.isVisible, cm2.isVisible, "isVisible") &&
           (equalRichTextStyring(cm1.getString, cm2.getString, w1, w2) ~ "string")
@@ -244,8 +243,8 @@ object FancyExcelUtils {
       "charset" → font.getCharSet,
       "color" → font.getColor
     ).map {
-      case (k, v) ⇒ k + "=" + v
-    }.mkString(",")
+        case (k, v) ⇒ k + "=" + v
+      }.mkString(",")
   }
 
   def toStringStyle(style: CellStyle) = {
@@ -273,21 +272,21 @@ object FancyExcelUtils {
       "verticalAlignment" → style.getVerticalAlignment,
       "wrapText" → style.getWrapText
     ).map {
-      case (k, v) ⇒ k + "=" + v
-    }.mkString(",")
+        case (k, v) ⇒ k + "=" + v
+      }.mkString(",")
   }
 
   /**
-    * Isn't this just Option(v) where v:T
-    *
-    * @param any
-    * @tparam T
-    *
-    * @return
-    */
+   * Isn't this just Option(v) where v:T
+   *
+   * @param any
+   * @tparam T
+   *
+   * @return
+   */
   def !![T](any: T) = any match {
     case null ⇒ None
-    case _    ⇒ Some(any)
+    case _ ⇒ Some(any)
   }
 
   protected def diff(expected: Any, actual: Any, name: String) = (expected == actual) ~
@@ -295,7 +294,7 @@ object FancyExcelUtils {
 
   class AddrRangeStart(startAddr: String) {
 
-    val numericReg      = "^[0-9]+$".r
+    val numericReg = "^[0-9]+$".r
     val alphabeticalReg = "^[A-Z]+$".r
 
     def isRowAddr(addr: String) = numericReg.findFirstIn(addr).isDefined
@@ -304,11 +303,9 @@ object FancyExcelUtils {
 
     def ~(endAddr: String): List[String] = if (isRowAddr(startAddr) && isRowAddr(endAddr)) {
       (startAddr.toInt to endAddr.toInt).map(_.toString).toList
-    }
-    else if (isColAddr(startAddr) && isColAddr(endAddr)) {
+    } else if (isColAddr(startAddr) && isColAddr(endAddr)) {
       (colAddrToIndex(startAddr) to colAddrToIndex(endAddr)).map(colIndexToAddr).toList
-    }
-    else {
+    } else {
       throw new IllegalArgumentException
     }
 

@@ -4,7 +4,7 @@ import java.io.File
 
 import com.odenzo.utils.excel.ExcelFns
 import com.odenzo.utils.excel.StdExcelStyles
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.IndexedColors
@@ -17,23 +17,23 @@ import org.fancypoi.excel._
  * This handles all the Excel and templating stuff.
  * Uses functions to pull the list of applications (or App Labels) and the connectivity.
  */
-class WriteConnectivityWorkbook() extends LazyLogging with StdExcelStyles with ExcelFns {
+class WriteConnectivityWorkbook() extends StrictLogging with StdExcelStyles with ExcelFns {
 
   /**
    * Function to get connectivity from Appliation A to Application B
    */
-  val onlineCount : (String, String) ⇒ Option[String] = (s : String, d : String) ⇒ None
+  val onlineCount: (String, String) ⇒ Option[String] = (s: String, d: String) ⇒ None
 
-  val batchCount : (String, String) ⇒ Option[String] = onlineCount
+  val batchCount: (String, String) ⇒ Option[String] = onlineCount
 
   /**
    * Subclasses expected to override this. I like that better than adding in constructor now-a-days.
    * Subclasses can put in their constructor if they want.
    */
-  val apps : Seq[String] = Seq()
+  val apps: Seq[String] = Seq()
 
-  val wb : Workbook = {
-    val sheetNames : Seq[String] = Seq("Online Connectivity", "Batch Conenctivity", "Meta-Data")
+  val wb: Workbook = {
+    val sheetNames: Seq[String] = Seq("Online Connectivity", "Batch Conenctivity", "Meta-Data")
     val book = new HSSFWorkbook()
     sheetNames.foreach(book.createSheet)
     book
@@ -101,11 +101,11 @@ class WriteConnectivityWorkbook() extends LazyLogging with StdExcelStyles with E
     writeConnectivitySheet(wb.sheetAt(1), apps, batchCount)
   }
 
-  def write(f : File) {
+  def write(f: File) {
     wb.write(f)
   }
 
-  protected def writeConnectivitySheet(sheet : Sheet, appLabels : Seq[String], countFun : (String, String) ⇒ Option[String]) {
+  protected def writeConnectivitySheet(sheet: Sheet, appLabels: Seq[String], countFun: (String, String) ⇒ Option[String]) {
 
     writeColumnTitles("Row To -> Col From" +: appLabels, sheet, Some(stdColHeaderRotatedStyle))
     // TODO: May have to fix the very first cell which we really want different style on
@@ -114,21 +114,21 @@ class WriteConnectivityWorkbook() extends LazyLogging with StdExcelStyles with E
     val cols = rows // Copy of rows basically, since symmetric matrix
 
     for ((rowNum, srcApp) ← rows) {
-      val row : FancyRow = sheet.createRow(rowNum)
+      val row: FancyRow = sheet.createRow(rowNum)
 
       val rowHCell = row.createCell(0)
       rowHCell.setCellValue(srcApp)
       rowHCell.setCellStyle(styleRowHeader)
 
       for ((colNum, destApp) ← cols) {
-        val cell : FancyCell = row.createCell(colNum)
+        val cell: FancyCell = row.createCell(colNum)
 
         countFun(srcApp, destApp) match {
           case None ⇒
-            cell.replaceStyle(styleNoConnection); cell.value("-") : Unit
+            cell.replaceStyle(styleNoConnection); cell.value("-"): Unit
           case Some("??") ⇒
-            cell.value("??"); cell.setCellStyle(styleConnectionNoCount) : Unit
-          case Some(count) ⇒ cell.value(count.toInt); cell.replaceStyle(styleConnection) : Unit
+            cell.value("??"); cell.setCellStyle(styleConnectionNoCount): Unit
+          case Some(count) ⇒ cell.value(count.toInt); cell.replaceStyle(styleConnection): Unit
         }
       }
 

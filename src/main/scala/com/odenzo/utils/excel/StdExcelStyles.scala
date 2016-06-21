@@ -5,9 +5,9 @@ import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.IndexedColors
 
 /**
-  * Some common styles for writing out Excel sheets. These are not true utilities but time savers for me.
-  *
-  */
+ * Some common styles for writing out Excel sheets. These are not true utilities but time savers for me.
+ *
+ */
 trait StdExcelStyles {
 
   val wb: Workbook // Abstract, so must be in the class we are mixing into, no need for implicits (?)
@@ -15,9 +15,9 @@ trait StdExcelStyles {
   import org.fancypoi.Implicits._
 
   // wb is not initialized straight away before here, so can make lazy or move to earliy init I guess.
-  lazy val stdFont       = wb.getFontWith(_.setFontHeightInPoints(14))
+  lazy val stdFont = wb.getFontWith(_.setFontHeightInPoints(14))
   lazy val stdHeaderFont = wb.getFontBasedWith(stdFont)(_.setBoldweight(600))
-  lazy val dataFormat    = wb.createDataFormat()
+  lazy val dataFormat = wb.createDataFormat()
   lazy val stdDateFormat = format("yyyy-mm-dd")
 
   lazy val stdStyle = wb.getStyle { s ⇒
@@ -47,26 +47,27 @@ trait StdExcelStyles {
     cellStyle.setIndention(1)
 
   }
-  lazy val stdDataCellString        = wb.getStyleBasedWith(stdStyle) { cellStyle ⇒
+  lazy val stdDataCellString = wb.getStyleBasedWith(stdStyle) { cellStyle ⇒
     cellStyle.setAlignment(CellStyle.ALIGN_LEFT)
     cellStyle.setWrapText(true)
     cellStyle.setIndention(1)
     cellStyle.setVerticalAlignment(CellStyle.VERTICAL_TOP)
   }
 
-  lazy val stdDataCellInt  = wb.getStyleBasedWith(stdStyle) {
-    s ⇒ {
-      s.setAlignment(CellStyle.ALIGN_RIGHT)
-      s.setDataFormat(format("#"))
-    }
+  lazy val stdDataCellInt = wb.getStyleBasedWith(stdStyle) {
+    s ⇒
+      {
+        s.setAlignment(CellStyle.ALIGN_RIGHT)
+        s.setDataFormat(format("#"))
+      }
   }
   lazy val stdDataCellDate = wb.getStyleBasedWith(stdStyle) {
-    s ⇒ {
-      s.setAlignment(CellStyle.ALIGN_RIGHT)
-      s.setDataFormat(stdDateFormat)
-    }
+    s ⇒
+      {
+        s.setAlignment(CellStyle.ALIGN_RIGHT)
+        s.setDataFormat(stdDateFormat)
+      }
   }
-
 
   def format(format: String) = dataFormat.getFormat(format)
 }

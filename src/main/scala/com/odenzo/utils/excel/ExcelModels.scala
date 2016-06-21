@@ -6,19 +6,38 @@ package com.odenzo.utils.excel
 object ExcelModels { // Using type and case classes for testing
   type ColAddr = String
   type ColIndx = Int
+  type RawAddr = Int
   type RowIndx = Int
 }
 
 /**
  * Represents a Column Address, e.g. A, AA, ZA. Should be uppercase
- *
- * @param a Currently system only handle A...ZZ correctly.
+ * Note that Column A maps to Column Index 0
+ * @param a Currently system only handle A...ZZ correctly in all functions
  */
-case class ColAddr(a : String) {
+case class ColAddr(a: String) {
   require(a.length == 1 || a.length == 2)
+  val addr = a.toUpperCase
 }
 
-case class ColIndx(i : Int)
+/**
+  *
+  * @param addr 1 Based Row Address (e.g. RowIndex(0) === RowAddr(1)
+  */
+case class RowAddr(addr:Int) {
 
-case class RowIndx(i : Int)
+}
+
+/**
+  *
+  * @param i Zero-Based column index
+  */
+case class ColIndx(i: Int)
+
+
+/**
+  *
+  * @param i Zero based row index
+  */
+case class RowIndx(i: Int)
 
