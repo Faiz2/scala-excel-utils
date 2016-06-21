@@ -1,4 +1,4 @@
-package com.odenzo.utils.excel.examples
+package com.odenzo.utils.excel.example_parsers
 
 import com.odenzo.utils.excel.ExcelFns
 import com.odenzo.utils.excel.StdExcelStyles

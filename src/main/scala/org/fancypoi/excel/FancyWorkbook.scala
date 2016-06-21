@@ -15,18 +15,18 @@ import org.fancypoi.Implicits._
 
 object FancyWorkbook {
 
-  def createXls: FancyWorkbook = new HSSFWorkbook
+  def createXls : FancyWorkbook = new HSSFWorkbook
 
-  def createXlsx: FancyWorkbook = new XSSFWorkbook
+  def createXlsx : FancyWorkbook = new XSSFWorkbook
 
-  def createFromFile(file: File): FancyWorkbook = {
+  def createFromFile(file : File) : FancyWorkbook = {
     val fis = new FileInputStream(file)
     val w = WorkbookFactory.create(fis)
     fis.close()
     w
   }
 
-  def createFromInputStream(is: InputStream): FancyWorkbook = {
+  def createFromInputStream(is : InputStream) : FancyWorkbook = {
     val w = WorkbookFactory.create(is)
     is.close()
     w
@@ -34,7 +34,7 @@ object FancyWorkbook {
 
 }
 
-class FancyWorkbook(protected[fancypoi] val workbook: Workbook) {
+class FancyWorkbook(protected[fancypoi] val workbook : Workbook) {
   override def toString = "Workbook"
 
   protected[fancypoi] val defaultFont = new FancyFont
@@ -45,39 +45,39 @@ class FancyWorkbook(protected[fancypoi] val workbook: Workbook) {
     style
   }
 
-  def dataFormat: DataFormat = workbook.createDataFormat() // POI has underlying cache, no need to duplicate
+  def dataFormat : DataFormat = workbook.createDataFormat() // POI has underlying cache, no need to duplicate
 
   protected[fancypoi] val tmpFont = new FancyFont
 
   protected[fancypoi] val tmpStyle = new FancyCellStyle
 
-  def getFontAt(index: Short) = index == FancyFont.DEFAULT_FONT_INDEX match {
-    case true => defaultFont
-    case false => workbook.getFontAt(index)
+  def getFontAt(index : Short) = index == FancyFont.DEFAULT_FONT_INDEX match {
+    case true  ⇒ defaultFont
+    case false ⇒ workbook.getFontAt(index)
   }
 
-  def getStyleAt(index: Short) = index == FancyCellStyle.DEFAULT_CELL_STYLE_INDEX match {
-    case true => defaultStyle
-    case false => workbook.getCellStyleAt(index)
+  def getStyleAt(index : Short) = index == FancyCellStyle.DEFAULT_CELL_STYLE_INDEX match {
+    case true  ⇒ defaultStyle
+    case false ⇒ workbook.getCellStyleAt(index)
   }
 
   /**
    * blockで設定したフォントを取得します。
    * 既に同じ値を持つフォントがある場合は、それを返し新しいフォントは生成しません。
    */
-  def getFontWith(block: Font => Unit): Font = getFontBasedWith(defaultFont)(block)
+  def getFontWith(block : Font ⇒ Unit) : Font = getFontBasedWith(defaultFont)(block)
 
   /**
    * ベースとなるフォントを指定し、blockで設定したフォントを取得します。
    * 既に同じ値を持つフォントがある場合は、それを返し新しいフォントは生成しません。
    * This doesn't seem threadsafe for starters.
    */
-  def getFontBasedWith(base: Font)(block: Font => Unit): Font = {
+  def getFontBasedWith(base : Font)(block : Font ⇒ Unit) : Font = {
     copyFont(base, tmpFont) // デフォルトフォントを一時フォントにコピー
     block(tmpFont) // 一時フォントを設定
     searchFont(this, tmpFont) match {
-      case Some(font) => font // フォントがすでにある場合はそれを返す
-      case None =>
+      case Some(font) ⇒ font // フォントがすでにある場合はそれを返す
+      case None ⇒
         val newFont = workbook.createFont
         copyFont(tmpFont, newFont)
         newFont
@@ -91,7 +91,7 @@ class FancyWorkbook(protected[fancypoi] val workbook: Workbook) {
    * @param block
    * @return
    */
-  def createStyleBasedWith(base: CellStyle)(block: CellStyle => Unit) = {
+  def createStyleBasedWith(base : CellStyle)(block : CellStyle ⇒ Unit) = {
     val style = workbook.createCellStyle()
     copyStyleWithoutFont(base, style)
     style.setFont(workbook.getFontAt(base.getFontIndex))
@@ -105,14 +105,14 @@ class FancyWorkbook(protected[fancypoi] val workbook: Workbook) {
    * blockで設定したセルスタイルを取得します。
    * 既に同じ値を持つセルスタイルがある場合は、それを返し新しいセルスタイルは生成しません。
    */
-  def getStyle(block: CellStyle => Unit): CellStyle = getStyleBasedWith(defaultStyle)(block)
+  def getStyle(block : CellStyle ⇒ Unit) : CellStyle = getStyleBasedWith(defaultStyle)(block)
 
   /**
    * ベースとなるセルスタイルを指定し、blockで設定したスタイルを取得します。
    * 既に同じ値を持つセルスタイルがある場合は、それを返し新しいセルスタイルは生成しません。
    *
    */
-  def getStyleBasedWith(base: CellStyle)(block: CellStyle => Unit) = {
+  def getStyleBasedWith(base : CellStyle)(block : CellStyle ⇒ Unit) = {
 
     // This will make a temporary style and put in tmpStyle, shared not MT safe?
     // Applies the styleing in block
@@ -129,16 +129,16 @@ class FancyWorkbook(protected[fancypoi] val workbook: Workbook) {
 
     // ワークブックから取得したいセルスタイルを検索し、ない場合は生成する。
     searchStyle(this, tmpStyle) match {
-      case Some(style) => style
-      case None =>
+      case Some(style) ⇒ style
+      case None ⇒
         val newStyle = workbook.createCellStyle
         copyStyleWithoutFont(tmpStyle, newStyle)
         val font = tmpStyle.getFontIndex == tmpFont.getIndex match {
-          case true =>
+          case true ⇒
             val f = workbook.createFont
             copyFont(tmpFont, f)
             f
-          case false => workbook.getFontAt(tmpStyle.getFontIndex)
+          case false ⇒ workbook.getFontAt(tmpStyle.getFontIndex)
         }
         newStyle.setFont(font)
         newStyle
@@ -149,15 +149,15 @@ class FancyWorkbook(protected[fancypoi] val workbook: Workbook) {
    * シートを名前で検索します
    * Get the sheet by given name, if it doesn't exist create it.
    */
-  def sheet(name: String): FancySheet = Option(workbook.getSheet(name)) match {
-    case None => workbook.createSheet(name)
-    case Some(sheet) => sheet
+  def sheet(name : String) : FancySheet = Option(workbook.getSheet(name)) match {
+    case None        ⇒ workbook.createSheet(name)
+    case Some(sheet) ⇒ sheet
   }
 
   /**
    * @return   An existing sheet with the given name.
    */
-  def sheet_?(name: String): Option[FancySheet] = {
+  def sheet_?(name : String) : Option[FancySheet] = {
     val sheet = workbook.getSheet(name)
     Option(new FancySheet(sheet)) // Skip the implicits in internal code.
   }
@@ -165,11 +165,11 @@ class FancyWorkbook(protected[fancypoi] val workbook: Workbook) {
   /**
    * シートをインデックスで検索し、blockを適用します。
    */
-  def sheetAt(index: Int): FancySheet = workbook.getSheetAt(index)
+  def sheetAt(index : Int) : FancySheet = workbook.getSheetAt(index)
 
-  def sheetAt_?(index: Int): Option[FancySheet] = workbook.getNumberOfSheets - 1 < index match {
-    case true => None
-    case false => Some(workbook.getSheetAt(index))
+  def sheetAt_?(index : Int) : Option[FancySheet] = workbook.getNumberOfSheets - 1 < index match {
+    case true  ⇒ None
+    case false ⇒ Some(workbook.getSheetAt(index))
   }
 
   /**
@@ -180,7 +180,7 @@ class FancyWorkbook(protected[fancypoi] val workbook: Workbook) {
   /**
    * ワークブックをファイルに書き出します。
    */
-  def write(file: File) {
+  def write(file : File) {
     val fos = new FileOutputStream(file)
     val bos = new BufferedOutputStream(fos)
     workbook.write(bos)

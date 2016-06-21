@@ -1,9 +1,5 @@
 <!--suppress XmlUnboundNsPrefix -->
 <configuration debug="false">
-<!-- This will be picked up when running unit tests -->
-
-	 <!-- Note System Property can override which file used: -Dlogback.configurationFile=/path/to/config.xml -->
-
 	 <property name="LOG_OUT_DIR" value="Output/logs"/>
 
 	 <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -19,6 +15,7 @@
 				<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
 		  </encoder>
 	 </appender>
+
 	 <logger name="ch.qos.logback" level="WARN"/>
 	 <logger name="com.odenzo.utils" level="DEBUG" />
 

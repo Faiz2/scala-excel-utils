@@ -16,17 +16,17 @@ trait CellParser[T] {
    *
    * @return
    */
-  def extract(c: FancyCell): Either[String, T]
+  def extract(c : FancyCell) : Either[String, T]
 }
 
 trait FnCellParser {
-  def extract[T: TypeTag](c: FancyCell): Either[String, T]
+  def extract[T : TypeTag](c : FancyCell) : Either[String, T]
 }
 
 object DefaultCellParser extends CellParser[String] {
-  def extract(c: FancyCell) = Right(c.stringValue)
+  def extract(c : FancyCell) = Right(c.stringValue)
 }
 
 object NumericCellParser extends CellParser[Double] {
-  def extract(c: FancyCell) = Right(c.numericValue)
+  def extract(c : FancyCell) = Right(c.numericValue)
 }

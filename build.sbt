@@ -4,7 +4,7 @@ import com.typesafe.sbt.SbtNativePackager.autoImport._
 lazy val commonSettings =
   Seq(
     organization := "com.odenzo",
-    version := "0.0.1",
+    version := "0.0.2-SNAPSHOT",
     scalaVersion := "2.11.8"
   )
 
@@ -36,7 +36,7 @@ val standardlibs = // I use these same set in just about every project
   Seq(
     "ch.qos.logback" % "logback-classic" % "1.1.7" withSources(),
     "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0" withSources(),
-    "org.scalaz" %% "scalaz-core" % "7.2.3" withSources(), // For Either really
+    "org.scalaz" %% "scalaz-core" % "7.2.3" withSources(), // For Either, OptionT really, cats instead?
     "org.scala-lang.modules" %% "scala-xml" % "1.0.5" withSources(),
 
     "org.scalacheck" %% "scalacheck" % "1.13.1" % "test" withSources() withJavadoc(),
@@ -62,27 +62,13 @@ lazy val root = (project in file("."))
 
 
 
-//////////// Bintray Publishing  --- to Move to Seperate .sbt file
+/*--------------- Bintray Publishing  --- to Move to Seperate .sbt file --------------------------*/
 
-
-/* In the credentials.properties file which I will try and store in .ivy
-realm=Bintray API Realm
-host=api.bintray.com
-user=odenzo
-password=BINTRAY_API_KEY
-
- */
-
-// Well well, do we want ot put version in here automatically? I think so.
-// Not that after a sbt publish need a sbt release
+// Note SNAPSHOTs won't go to BinTray
 publishTo := Some("Bintray API Realm"
-                    at "https://api.bintray.com/content/odenzo/maven/scala-excel-utils/0.0.1"
+                    at "https://api.bintray.com/content/odenzo/maven/scala-excel-utils/" + version
 )
 
-
-/*
- * Note that this will seem to reject a version ending in SNAPSHOT
- */
 sbtPlugin := false
 bintrayOrganization := None
 bintrayRepository := "maven"
@@ -90,3 +76,35 @@ publishMavenStyle := true
 bintrayReleaseOnPublish in ThisBuild := true
 licenses +=("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html"))
 bintrayPackageLabels := Seq("scala", "excel", "POI")
+
+
+/*----- Scalariform FOrmatting ---------*/
+
+/* -------------- Scalariform --------------------------*/
+// And the battle with IntelliJ -- whose formattting I like better for now.
+// So not useing thig.
+//
+//import scalariform.formatter.preferences._
+//import com.typesafe.sbt.SbtScalariform
+//import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+//
+//SbtScalariform.scalariformSettings
+//
+//ScalariformKeys.preferences := ScalariformKeys.preferences.value
+//                               .setPreference(DoubleIndentClassDeclaration, true)
+//                               .setPreference(IndentWithTabs, false)
+//                               .setPreference(IndentSpaces, 2)
+//                               .setPreference(RewriteArrowSymbols, true)
+//                               .setPreference(SpaceBeforeColon, true)
+//                               .setPreference(SpaceInsideBrackets, false)
+//                               .setPreference(SpaceInsideParentheses, false)
+//                               .setPreference(SpacesWithinPatternBinders, true)
+//                               .setPreference(AlignArguments, true)
+//                               .setPreference(AlignParameters, true)
+//                               .setPreference(AlignSingleLineCaseStatements, true)
+//                               .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 80)
+//                               .setPreference(MultilineScaladocCommentsStartOnFirstLine, false)
+//                               .setPreference(SpacesAroundMultiImports, false)
+//                               .setPreference(CompactControlReadability, true)
+//                               .setPreference(CompactStringConcatenation, false)
+

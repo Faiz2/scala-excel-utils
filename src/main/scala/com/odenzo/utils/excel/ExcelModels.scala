@@ -14,11 +14,11 @@ object ExcelModels { // Using type and case classes for testing
  *
  * @param l Currently system only handle A...ZZ correctly.
  */
-case class ColAddr(l: String) {
+case class ColAddr(l : String) {
   require(l.length == 1 || l.length == 2)
 }
 
-case class ColIndx(i: Int)
+case class ColIndx(i : Int)
 
-case class RowIndx(i: Int)
+case class RowIndx(i : Int)
 

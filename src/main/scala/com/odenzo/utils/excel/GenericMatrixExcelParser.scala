@@ -15,7 +15,7 @@ import org.fancypoi.excel.FancyWorkbook
  *
  * @author Steve Franks
  */
-class GenericMatrixExcelParser(wb: FancyWorkbook) extends GenericExcelParser(wb) with LazyLogging {
+class GenericMatrixExcelParser(wb : FancyWorkbook) extends GenericExcelParser(wb) with LazyLogging {
 
   import org.fancypoi.excel.FancyRow
 
@@ -30,16 +30,16 @@ class GenericMatrixExcelParser(wb: FancyWorkbook) extends GenericExcelParser(wb)
    *
    *
    */
-  override protected def rowParser(r: FancyRow, rowMap: Map[Int, String]): Map[String, Any] = {
+  override protected def rowParser(r : FancyRow, rowMap : Map[Int, String]) : Map[String, Any] = {
     val res = rowMap.flatMap {
-      case (cellIndx, prop) =>
+      case (cellIndx, prop) ⇒
         val extractFn = customExtractors.getOrElse(prop, defaultDataCellConsumer)
         val v = extractFn(r.cellAt(cellIndx))
-        if (v.isDefined) Some(prop -> v.get)
+        if (v.isDefined) Some(prop → v.get)
         else None
     }
 
-    res + ("_rowAddr" -> r.addr) // Add row address (index + 1) for debugging porpoises
+    res + ("_rowAddr" → r.addr) // Add row address (index + 1) for debugging porpoises
   }
 
 }

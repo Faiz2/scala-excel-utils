@@ -4,95 +4,20 @@ import java.util.Date
 
 import org.apache.poi.ss.usermodel._
 import org.fancypoi.Implicits._
-import org.fancypoi.excel.{ FancySheet, FancyExcelUtils, FancyRow }
+import org.fancypoi.excel.FancyCell
+import org.fancypoi.excel.{FancyExcelUtils, FancyRow, FancySheet}
 
-/**
- * Need to start Pimping these instead of external functions
- * @author Steve Franks (e1040775)
- *
- */
-trait ExcelFns {
 
-  import org.apache.poi.ss.usermodel.Row
-  import org.fancypoi.excel.{ FancyCell, FancyWorkbook }
 
-  /**
-   *
-   * @param rowIndex Starts at row 1 (?)
-   * @param colIndex Starts at col 1
-   * @return Converts to Excel address like AA23
-   */
-  def cellindexesToAddr(rowIndex: Int, colIndex: Int): String = {
-    FancyExcelUtils.colIndexToAddr(colIndex) + rowIndex
-  }
+trait ExcelCellParsers {
 
-  /**
-   * Converts Excel Column like A to 0 or AA to 26
-   * @param addr
-   * @return
-   */
-  def colAddrToIndex(addr: String): Int = FancyExcelUtils.colAddrToIndex(addr)
-
-  def colIndexToAddr(indx: Int): String = FancyExcelUtils.colIndexToAddr(indx)
-
-  /**
-   * Creates a new Xlsx Workbook with the sheet given in sheetnames (in order)
-   * @param sheetNames
-   * @return
-   */
-  def createWorkbookWithSheet(sheetNames: Seq[String]): FancyWorkbook = {
-    val wb = FancyWorkbook.createXlsx
-    sheetNames.foreach(wb.createSheet)
-    wb
-  }
-
-  /**
-   * Unhides all sheets in a workbook.
-   * @param workbook
-   */
-  def unhideAllSheets(workbook: FancyWorkbook) {
-    for (sheet ← workbook.sheets) {
-      val indx = workbook.getSheetIndex(sheet)
-      if (workbook.isSheetHidden(indx)) {
-        workbook.setSheetHidden(indx, false)
-      }
-    }
-  }
-
-  /**
-   *
-   * @param row
-   * @return True if the row has zero height, which indicates it is hidden
-   */
-  def rowIsHidden(row: Row) = row.getZeroHeight
-
-  /**
-   * Determines if a Excel row is empty by checking that the first cell is present and has some data.
-   * Note this is not generically true, as first cell could be blank
-   * @param row
-   * @return True if the row has some content, base definition row not null and ...
-   */
-  def rowNotEmpty(row: FancyRow): Boolean = {
-    if (row == null) return false
-    cellNotEmpty(row.cellAt(0))
-  }
-
-  /**
-   * Determines if a Excel row is empty by checking that the first cell is present and has some data.
-   * @param row
-   * @return True if the row has some content, base definition row not null and ...
-   */
-  def rowIsEmpty(row: FancyRow): Boolean = !rowNotEmpty(row)
-
-  def cellNotEmpty(cell: FancyCell): Boolean = smartContent(cell).isDefined
-
-  /**
-   * Get the value of a cell suitable for storing in Neo4J.
-   * I am not sure if setting a property to null is advisable, but this returns null for blank cells.
-   * This is just a quick hack to test out Neo4j
-   * @param cell to get the content of, POI Cell now, not sure if FancyPOI cell is coerced
-   * @return
-   */
+ /**
+    * Get the value of a cell suitable for storing in Neo4J.
+    *
+    * @param cell to get the content of, POI Cell now, not sure if FancyPOI cell is coerced
+    *
+    * @return
+    */
   def cellContent(cell: FancyCell): String = {
     if (cell == null) return ""
 
@@ -102,24 +27,27 @@ trait ExcelFns {
   }
 
   /**
-   * Trying to decide how to organize cell parsing.
-   * If blank or null cell then None, else if a number (of any kind?) then value.
-   * But what if error, i.e. it is a String cell with value "Cat"
-   * If it is a String cell that is parseable into an Integer no problem, same with RichText.
-   * What if it is a Date cell, still return the Int representation I think.
-   * @param cell
-   * @return
-   */
+    * Trying to decide how to organize cell parsing.
+    * If blank or null cell then None, else if a number (of any kind?) then value.
+    * But what if error, i.e. it is a String cell with value "Cat"
+    * If it is a String cell that is parseable into an Integer no problem, same with RichText.
+    * What if it is a Date cell, still return the Int representation I think.
+    *
+    * @param cell
+    *
+    * @return
+    */
   def contentAsInt(cell: Cell): Option[Long] = {
     None
   }
 
   /**
-   * Crude start at a smart Cell Value thing. I think a FancyCellValue class a good idea.
-   *
-   * @param cell
-   * @return
-   */
+    * Crude start at a smart Cell Value thing. I think a FancyCellValue class a good idea.
+    *
+    * @param cell
+    *
+    * @return
+    */
   def smartContent(cell: FancyCell): Option[Any] = {
     if (cell == null) return None
     cell.getCellType match {
@@ -133,12 +61,104 @@ trait ExcelFns {
     }
   }
 
+}
+/**
+  * Some functions, which may just forward ...
+  **/
+trait ExcelFns extends ExcelCellParsers {
+
+  import org.apache.poi.ss.usermodel.Row
+  import org.fancypoi.excel.{FancyCell, FancyWorkbook}
+
   /**
-   * Maps column titles to rowIndex starting at RowIndex(0)
-   * @param titles
-   * @param sheet
-   * @param style
-   */
+    *
+    * @param rowIndex Starts at row 0
+    * @param colIndex Starts at col A=0
+    *
+    * @return Converts to Excel address like AA23
+    */
+  def cellindexesToAddr(rowIndex: Int, colIndex: Int): String = {
+    FancyExcelUtils.colIndexToAddr(colIndex) + rowIndex
+  }
+
+  /**
+    *
+    *
+    * @return Converts Excel Column like A -> 0 or AA to 26
+    */
+  def colAddrToIndex(addr: String): Int = FancyExcelUtils.colAddrToIndex(addr)
+
+  def colIndexToAddr(indx: Int): String ={
+    require(indx>0,"Column Index Must be greater than zero ")
+    FancyExcelUtils.colIndexToAddr(indx)
+  }
+
+  /**
+    * Creates a new Xlsx Workbook with the sheet given in sheetnames (in order)
+    *
+    * @param sheetNames
+    *
+    * @return
+    */
+  def createWorkbookWithSheet(sheetNames: Seq[String]): FancyWorkbook = {
+    val wb = FancyWorkbook.createXlsx
+    sheetNames.foreach(wb.createSheet)
+    wb
+  }
+
+  /**
+    * Unhides all sheets in a workbook.
+    *
+    * @param workbook
+    */
+  def unhideAllSheets(workbook: FancyWorkbook) {
+    for (sheet ← workbook.sheets) {
+      val indx = workbook.getSheetIndex(sheet)
+      if (workbook.isSheetHidden(indx)) {
+        workbook.setSheetHidden(indx, false)
+      }
+    }
+  }
+
+  /**
+    * TODO: Candidate for FancyRow
+    *
+    * @return True if the row has zero height, which indicates it is hidden
+    */
+  def rowIsHidden(row: Row) = row.getZeroHeight
+
+  /**
+    * Determines if a Excel row is empty by checking that the first cell is present and has some data.
+    * Note this is not generically true, as first cell could be blank
+    *
+    * @param row
+    *
+    * @return True if the row has some content, base definition row not null and ...
+    */
+  def rowNotEmpty(row: FancyRow): Boolean = {
+    if (row == null) return false
+    cellNotEmpty(row.cellAt(0))
+  }
+
+  /**
+    * Determines if a Excel row is empty by checking that the first cell is present and has some data.
+    *
+    * @param row
+    *
+    * @return True if the row has some content, base definition row not null and ...
+    */
+  def rowIsEmpty(row: FancyRow): Boolean = !rowNotEmpty(row)
+
+  def cellNotEmpty(cell: FancyCell): Boolean = smartContent(cell).isDefined
+
+
+  /**
+    * Maps column titles to rowIndex starting at RowIndex(0)
+    *
+    * @param titles
+    * @param sheet
+    * @param style
+    */
   def writeColumnTitles(titles: Seq[String], sheet: Sheet, style: Option[CellStyle]) {
     val row = sheet.createRow(0)
     val cells = Range(0, titles.size).map(row.createCell)
@@ -147,16 +167,18 @@ trait ExcelFns {
     }
     cells.zip(titles).foreach(x ⇒ {
       x._1.setCellValue(x._2)
-    })
+    }
+    )
 
     // Could add formatting here if not so lazy
   }
 
   /**
-   * Creates new row for each title starting at the second row (skipping top row)
-   * @param titles
-   * @param sheet
-   */
+    * Creates new row for each title starting at the second row (skipping top row)
+    *
+    * @param titles
+    * @param sheet
+    */
   def writeRowTitles(titles: Seq[String], sheet: Sheet) {
 
     val cells = Range(1, titles.size).map(sheet.createRow(_).createCell(0))
@@ -166,12 +188,13 @@ trait ExcelFns {
   }
 
   /**
-   * Assuming a blank existing sheet, this creates a rudimentory Revisions template populating the first line.
-   * @param sheet
-   * @param author
-   * @param changes
-   * @param date
-   */
+    * Assuming a blank existing sheet, this creates a rudimentory Revisions template populating the first line.
+    *
+    * @param sheet
+    * @param author
+    * @param changes
+    * @param date
+    */
   def writeRevisionsSheet(sheet: Sheet, author: String, changes: String, date: Date) {
 
     val wb = sheet.workbook
@@ -195,20 +218,21 @@ trait ExcelFns {
   }
 
   /**
-   * TODO: WIP, Cells have values and types.
-   * @param c
-   * @param ov
-   */
+    * TODO: WIP, Cells have values and types.
+    *
+    * @param c
+    * @param ov
+    */
   def writeCell(c: Cell, ov: Option[Any]) {
     ov match {
-      case None ⇒ // c.setCellType()// Set the cell to Blank/Empty
-      case Some(v: String) ⇒ c.setCellValue(v)
-      case Some(v: RichTextString) ⇒ c.setCellValue(v)
-      case Some(v: Boolean) ⇒ c.setCellValue(v)
-      case Some(v: Double) ⇒ c.setCellValue(v)
-      case Some(v: Date) ⇒ c.setCellValue(v)
+      case None                        ⇒ // c.setCellType()// Set the cell to Blank/Empty
+      case Some(v: String)             ⇒ c.setCellValue(v)
+      case Some(v: RichTextString)     ⇒ c.setCellValue(v)
+      case Some(v: Boolean)            ⇒ c.setCellValue(v)
+      case Some(v: Double)             ⇒ c.setCellValue(v)
+      case Some(v: Date)               ⇒ c.setCellValue(v)
       case Some(v: java.util.Calendar) ⇒ c.setCellValue(v)
-      case Some(v) ⇒ c.setCellValue(v.toString)
+      case Some(v)                     ⇒ c.setCellValue(v.toString)
     }
   }
 

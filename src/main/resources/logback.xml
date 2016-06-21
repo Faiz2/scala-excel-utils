@@ -1,39 +1,39 @@
 <!--suppress XmlUnboundNsPrefix -->
 <configuration debug="false">
-<!-- Will Typesafe logger use this, it should -->
 
-	 <!-- Note System Property can override which file used: -Dlogback.configurationFile=/path/to/config.xml -->
+	<!-- Note System Property can override which file used: -Dlogback.configurationFile=/path/to/config.xml -->
 
-	 <property name="LOG_OUT_DIR" value="Output/logs"/>
-
-
-	 <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-		  <layout class="ch.qos.logback.classic.PatternLayout">
-				<Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} %L - %msg%n</Pattern>
-		  </layout>
-		  <encoder>
-				<pattern>B24:\t %date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
-		  </encoder>
-	 </appender>
-
-	 <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		  <file>${LOG_OUT_DIR}/TestLog.log</file>
-
-		  <append>true</append>
-		  <layout class="ch.qos.logback.classic.PatternLayout">
-				<Pattern>FB24 %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
-		  </layout>
-		  <encoder>
-				<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
-		  </encoder>
-	 </appender>
-	 <logger name="ch.qos.logback" level="WARN"/>
-
-	 <logger name="com.odenzo.archcatalogs.gui.MainUI" level="DEBUG" />
+	<property name="LOG_OUT_DIR" value="Output/logs"/>
 
 
-	 <root level="DEBUG">
-		  <appender-ref ref="FILE"/>
-		  <appender-ref ref="CONSOLE"/>
-	 </root>
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} %L - %msg%n</Pattern>
+		</layout>
+		<encoder>
+			<pattern>B24:\t %date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+		<file>${LOG_OUT_DIR}/TestLog.log</file>
+
+		<append>true</append>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>FB24 %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+		</layout>
+		<encoder>
+			<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+		</encoder>
+	</appender>
+	d
+
+	<logger name="ch.qos.logback" level="WARN"/>
+	<logger name="com.odenzo." level="DEBUG"/>
+
+
+	<root level="DEBUG">
+		<appender-ref ref="FILE"/>
+		<appender-ref ref="CONSOLE"/>
+	</root>
 </configuration>
